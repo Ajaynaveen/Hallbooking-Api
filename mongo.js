@@ -7,6 +7,7 @@ mongoose.connect(url);
 const db=mongoose.connection;
 db.once('connected',()=>{
     console.log("Connected to database");
+    // mongoose.Connection.close();
 })
 db.on('error',console.error.bind(console,'connection error')
     
@@ -20,8 +21,9 @@ const noteschema=new mongoose.Schema({
     important:Boolean
 })
 const Note=mongoose.model('Note',noteschema,'notes')
+console.log(Note)
 // const note=new Note({
-//     content:'callback is easy',
+//     content:'learning mongo db is easy',
 //     important:true
 // })
 // note.save()
