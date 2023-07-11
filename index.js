@@ -1,38 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 app.use(express.json());
-const mongoose=require('mongoose')
-console.log(process.argv )
-const password=process.argv[2];
-const url=`mongodb+srv://ajaysnaviee:Nr7SE5I0UjD1wQdC@cluster0.jvsps7g.mongodb.net/Noteapp?retryWrites=true&w=majority`
-mongoose.set('strictQuery',false);
-mongoose.connect(url);
-const db=mongoose.connection;
-db.once('connected',()=>{
-    console.log("Connected to database");
-    // mongoose.Connection.close();
-})
-db.on('error',console.error.bind(console,'connection error')
-    
-)
-const noteschema=new mongoose.Schema({
-    content:String,
-    date:{
-        type:Date,
-        default: Date.now
-    },
-    important:Boolean
-})
-noteschema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-    }
-})
+
+const cors = require('cors');
+app.use(cors());
+// const password=process.argv[2];
 
 
-const Note=mongoose.model('Note',noteschema,'notes')
+const Note= require('./models/note');
 
 
 // set the endpoints
@@ -117,7 +93,7 @@ app.put('/api/notes/:id', (request, response) => {
 
 
 // Listen to the PORT for requests
-const PORT = 3000;
+const PORT = process.env.PORT ||3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
