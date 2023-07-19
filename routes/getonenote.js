@@ -6,7 +6,7 @@ const router = require('express').Router();
 const Note = require('../models/note');
 
 // fetches a single resource
-router.get('/:id', (request, response) => {
+router.get('/:id', (request, response, next) => {
     const id = request.params.id;
     Note.findById(id)
         .then((note) => {
@@ -15,9 +15,9 @@ router.get('/:id', (request, response) => {
             }
             response.json(note);
         })
-        .catch((error) => {
-            response.status(500).json({ error: 'Internal server error' });
-        });
+        .catch(error => next(error));
 });
+
+module.exports = router;
 
 module.exports = router;

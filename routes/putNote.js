@@ -1,4 +1,6 @@
 const router = require('express').Router();
+
+// import the model
 const Note = require('../models/note');
 
 // put request to replace the entire identified resource with the request data

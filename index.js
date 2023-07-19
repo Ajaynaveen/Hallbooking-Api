@@ -26,12 +26,25 @@ mongoose.connect(url)
 
 // create a model
 const Note = require('./models/note');
+const requestLogger = (request, response, next) => {
+    console.log('Method:', request.method);
+    console.log('Path:', request.path);
+    console.log('Body:', request.body);
+    console.log('--------');
+    next();// yielding the control to the next middleware
+}
+
+app.use(requestLogger);
+
 
 // set the endpoints
 
 const getAllNotes = require('./routes/getallroutes');
 const Createnotes=require('./routes/createnote')
 const Getonenotes=require('./routes/getonenote')
+const deleteNote = require('./routes/deleteNote');
+const putNote = require('./routes/putNote');
+const patchNote = require('./routes/patchNote');
 
 // fetches all resources in the collection
 app.use('/api/notes', getAllNotes);
@@ -42,56 +55,31 @@ app.use('/api/notes', Createnotes)
 
 // fetching a sigle resource
 app.use('/api/notes/', Getonenotes)
+//delete
+app.use('/api/notes', deleteNote);
 
-// deleting a resource
-app.delete('/api/notes/:id', (request, response) => {
-    // get the id of the resource from params
-    const id = request.params.id;
+// // replace the entire identified resource with the request data
+app.use('/api/notes', putNote);
 
-    Note.findByIdAndDelete(id)
-        .then((deletedNote) => {
-            if (!deletedNote) {
-                return response.status(404).json({ error: 'Note not found' });
-            }
-            response.status(204).json({ message: 'Note deleted successfully' });
-        })
-        .catch((error) => {
-            response.status(500).json({ error: 'Internal server error' });
-        });
-});
+// // patch request to update the identified resource with the request data
+app.use('/api/notes', patchNote);
+const unknownEndpoint = (request, response) => {
+    console.log('error')
+    response.status(404).send({error: 'unknown endpoint'});
+}
 
-// replace the entire identified resource with the request data
-app.put('/api/notes/:id', (request, response) => {
-    const id = request.params.id;
-    const noteToPut = request.body;
+app.use(unknownEndpoint);
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message);
 
-    Note.findByIdAndUpdate(id, noteToPut)
-        .then((updatedNote) => {
-            if (!updatedNote) {
-                return response.status(404).json({ error: 'Note not found' });
-            }
-            response.json(updatedNote);
-        })
-        .catch((error) => {
-            response.status(500).json({ error: 'Internal server error' });
-        });
-});
+    if(error.name === 'CastError'){
+        return response.status(400).send({error: 'malformatted id'});
+    }
 
-app.patch('/api/notes/:id', (request, response) => {
-    const id = request.params.id;
-    const noteToPatch = request.body;
+    next(error);
+}
 
-    Note.findByIdAndUpdate(id, noteToPatch)
-        .then((updatedNote) => {
-            if (!updatedNote) {
-                return response.status(404).json({ error: 'Note not found' });
-            }
-            response.json(updatedNote);
-        })
-        .catch((error) => {
-            response.status(500).json({ error: 'Internal server error' });
-        });
-});
+app.use(errorHandler);
 
 // Listen to the PORT for requests
 const PORT = process.env.PORT || 3000
